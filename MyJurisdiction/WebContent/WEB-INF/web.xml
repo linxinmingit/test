@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" id="WebApp_ID" version="3.0">
+	<!-- 解决post请求乱码 --><!-- 在此实例中证明确实要放在最前面，否则会乱码 -->
+	<filter>
+		<filter-name>CharacterEncodingFilter</filter-name>
+		<filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+		<init-param><!-- 解决乱码 -->
+			<param-name>encoding</param-name>
+			<param-value>utf-8</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>CharacterEncodingFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping> 
+	
+	
+	<!-- 注解方式配置springmvc.xml -->
+	<servlet>
+		<servlet-name>springMVC</servlet-name><!-- 名字随便写 -->
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+		<init-param>  
+			<param-name>contextConfigLocation</param-name>
+			<param-value>classpath:springmvc.xml</param-value>
+		</init-param>
+		<!-- 当值为0或者大于0时，表示容器在应用启动时就加载这个servlet,当是一个负数时或者没有指定时，则指示容器在该servlet被选择时才加载 -->
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>springMVC</servlet-name><!-- 和上面对应,这个就是配置文件的名字:springMVC -->
+		<url-pattern>/</url-pattern><!-- 在springMVC里面/表示拦截所有 -->
+	</servlet-mapping> 
+	
+	
+	<!-- 这是一个过滤器配置, 配置 org.springframework.web.filter.HiddenHttpMethodFilter: 可以把 POST 请求转为 DELETE 或 PUT 请求 -->
+	<filter>
+		<filter-name>HiddenHttpMethodFilter</filter-name>
+		<filter-class>org.springframework.web.filter.HiddenHttpMethodFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>HiddenHttpMethodFilter</filter-name>
+		<url-pattern>/*</url-pattern><!-- 拦截所有的 -->
+	</filter-mapping>
+	
+	
+	<!-- 将FORWARD请求全部转为get请求,用处是controller跳转jsp如果是put和delete就会出错,这里将他请求转为get请求就不会出错了-->
+	<filter>
+	    <filter-name>getMethodConvertingFilter</filter-name>
+	    <filter-class>com.yr.filter.GetMethodConvertingFilter</filter-class>
+	</filter>
+
+	<!-- 配置 Spring 配置文件的名称和位置 -->
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>classpath:spring.xml</param-value>
+	</context-param>
+
+	<!-- 启动 IOC 容器的 ServletContextListener -->
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+	
+	<!-- 设置session的时长 -->
+	<session-config>
+		<session-timeout>60</session-timeout>
+	</session-config>
+</web-app>

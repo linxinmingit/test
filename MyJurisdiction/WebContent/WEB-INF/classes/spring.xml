@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:lang="http://www.springframework.org/schema/lang"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.3.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-4.3.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.3.xsd">
+
+	<!-- 启用外部配置文件  -->
+	<context:property-placeholder location="classpath:db.properties"/>
+	
+	<context:component-scan base-package="com.yr"><!-- 这里配置排除指定 类上指定注解，因为这两个都是springmvc需要用的，所以这里排除掉-->
+		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+		<context:exclude-filter type="annotation" expression="org.springframework.web.bind.annotation.ControllerAdvice"/>
+	</context:component-scan>
+
+	<!-- 配置数据源 -->
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+		<property name="driverClass" value="${db.driver}"></property>
+    	<property name="jdbcUrl" value="${db.url}"></property>
+    	<property name="user" value="${db.user}"></property>
+    	<property name="password" value="${db.password}"></property>
+    	
+    	<!-- 连接池初始化时创建的连接数  也就是初始化加载就有连接数,需要调用就给你-->
+    	<property name="initialPoolSize" value="${db.initialPoolSize}"></property>
+    	<!-- 连接池中拥有的最大连接数  当扩充到最大连接数就不在扩充-->
+    	<property name="maxPoolSize" value="${db.maxPoolSize}"></property>
+	</bean>
+	
+	<!-- 配置jdbc模型-->
+	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean> 
+	
+	<!-- 配置事务管理器   -->
+	<!-- <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean> -->
+	
+	<!-- 配置事务的传播特行 -->
+	<!-- <tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			用底层数据库的默认隔离级别，数据库管理员设置什么就是什么
+			<tx:method name="*" propagation="REQUIRED" />
+		</tx:attributes>
+	</tx:advice> -->
+	
+	<!-- 配置哪些类参与事务 -->
+	<!-- <aop:config>
+		扫描指定的类aop方式	指定切点路径
+		<aop:pointcut expression="execution(* com.yr.service.*serviceImpl.*(..))" id="interceptorPointCuts"/>
+		开启指定路径和指定方法的应用
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="interceptorPointCuts"/>
+	</aop:config> -->
+</beans>

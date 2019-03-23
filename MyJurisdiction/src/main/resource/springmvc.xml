@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.3.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd">
+	
+	<!--设置配置方案 ,conversion-service属性是把自动类转换的服务加入-->
+	<!-- 暂时注释conversion-service="conversionService" -->
+	<mvc:annotation-driven conversion-service="conversionService"/>
+	
+	<!--扫描这个文件夹下的类表示是注解的controller。 到web文档中可以查找获得   controller包名表示需要扫描这个包下的类 	关闭掉默认的过滤器-->
+	<context:component-scan base-package="com.yr" use-default-filters="false">
+		<context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/><!-- 这里是包含 -->
+		<context:include-filter type="annotation" expression="org.springframework.web.bind.annotation.ControllerAdvice"/>
+	</context:component-scan>
+	
+	
+	<!-- 配置页面渲染器 	优先级最小，因为他是Order属性的最大值-->
+	<bean id="jspViewResolver"
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<!-- 绑定servlet的响应页面的view层,加入指定前缀后缀 -->
+		<property name="viewClass" value="org.springframework.web.servlet.view.JstlView" />
+	<!-- 配置结果视图的前缀和后缀 ，页面路径默认在webContent下 /page/表示jsp文件在test文件夹 -->
+		<property name="prefix" value="/WEB-INF/page/" /><!-- 这是url前缀 -->
+		<property name="suffix" value=".jsp" /><!-- 这是url后缀 -->
+	</bean>
+	
+	<!-- 配置视图  BeanNameViewResolver 解析器: 使用视图的名字来解析视图 ,将逻辑视图解析为一个bean,bean的id为视图的名字,也就是实现view,就会被当成视图-->
+	<!-- 通过 order 属性来定义视图解析器的优先级, order 值越小优先级越高 -->
+	<bean class="org.springframework.web.servlet.view.BeanNameViewResolver">
+		<property name="order" value="100"></property>
+	</bean>
+	
+	<!--
+		使用默认的Servlet来响应静态文件,default-servlet-handler将在springmvc从上下文定义一个 DefaultServletHttpRequestHandler,
+		它会对进入DispatcherServlet的请求进行筛查,如果发现是没有经过映射请求,就由该请交由WEB应用服务器默认的servlet处理.如果不是静态资源的请求，才
+		由DispatcherServlet继续处理			handler其实就是controller
+		一般 WEB 应用服务器默认的 Servlet 的名称都是 default.
+		若所使用的 WEB 服务器的默认 Servlet 名称不是 default，则需要通过 default-servlet-name 属性显式指定
+	-->
+	<mvc:default-servlet-handler />
+	
+	<!-- 配置国际化 -->
+	<bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
+		<!-- 设置配置文件的前缀 -->
+		<property name="basename" value="jurisdiction"></property><!-- value是指定前缀，如果有国际化文件就读国际化文件，没有的话就读资源文件 -->
+	</bean>
+	
+	<!-- 会将local后的参数截取，获取到参数后加入session中，以便后面跳转页面使用，他能够根据你的参数找到本地的资源文件匹配 -->
+	<bean id="localeResolver" class="org.springframework.web.servlet.i18n.SessionLocaleResolver"></bean>
+		
+	<!-- 配置自定义拦截器 -->
+    <mvc:interceptors>
+    <!-- 拦截所有资源 -->
+    	<!-- <bean class="com.yr.Interceptor.MyInterceptor"></bean>这里配置的是所有的请求拦截
+    	配置拦截器不作用的路径
+    	<mvc:interceptor>
+    		<mvc:mapping path="/**"/>设置包含所有的路径
+    		<mvc:exclude-mapping path="/account/accounts"/>设置不包含的路径
+    		<bean class="com.yr.Interceptor.MyInterceptors"></bean>
+    	</mvc:interceptor> -->
+    	<!-- 配置LocaleChangeInterceptor 每个请求都会进入,而且session正好有我们需要的值,系统里面的拦截器,一般系统的配置都写我们的自定义后面 -->
+		<bean class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor"></bean>
+	</mvc:interceptors> 
+	
+	<!-- 映射资源，也就是直接不访问controller层直接跳页面 -->
+	<!-- <mvc:view-controller path="/add" view-name="add"/> -->
+	
+	<!-- 配置自定义类型的转换器 -->
+	<bean id="conversionService" class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
+		<!-- <property name="converters">定义converters的属性,将bean赋给这个属性
+			<list>
+				<bean class="com.yr.util.ProcuctConverter"></bean>引入这个自定义数据类型转换类的bean
+			</list>
+		</property> -->
+	</bean>
+	
+	<!-- 文件上传必须配置导入CommonsMultipartResolver,配置multipartResolver后,可以上传流,而且是使用servlet对象 -->
+	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">   
+          <property name="maxUploadSize"><value>2000000</value></property> <!-- 文件上传的最小字节 -->
+          <property name="defaultEncoding"><value>UTF-8</value></property> <!-- 文件上传的编码格式 -->
+    </bean> 
+	
+	<!-- 配置直接跳转的页面  	path是url后缀,view-name指定跳转的jsp-->
+	<mvc:view-controller path="/login" view-name="login/login"/>
+	<mvc:view-controller path="/index" view-name="index"/>
+	<mvc:view-controller path="/main" view-name="main"/>
+	
+	<!-- 用户管理 -->
+	<mvc:view-controller path="Jurisdictions/user" view-name="user/userList"/>
+	<!-- 角色管理 -->
+	<mvc:view-controller path="Jurisdictions/role" view-name="role/roleList"/>
+	<!-- 菜单管理 -->
+	<mvc:view-controller path="Jurisdictions/menu" view-name="menu/menuList"/>
+	
+	
+	
+	<!-- 可以引入WEB-INF下的js文件等	 location对应url	mapping会找到css下面所有文件 -->
+	<mvc:resources location="/css/" mapping="/css/**"/>
+    <mvc:resources location="/js/" mapping="/js/**"/>
+    <mvc:resources location="/json/" mapping="/json/**"/>
+    <mvc:resources location="/images/" mapping="/images/**"/>
+    <mvc:resources location="/layui/" mapping="/layui/**"/>
+
+	
+	<!-- 配置使用 SimpleMappingExceptionResolver 来映射异常	这里的配置可以将异常类映射成视图名 -->
+	<!-- <bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+		<property name="exceptionAttribute" value="ex"></property>配置属性的名字
+		<property name="exceptionMappings">
+			<props>
+				<prop key="java.lang.ArithmeticException">error</prop>配置指定异常跳转的错误jsp,这里指定的异常是ArrayIndexOutOfBoundsException
+			</props>
+		</property>
+	</bean>	 -->
+	
+</beans>
